@@ -37,20 +37,31 @@ function durationInWords(totalSeconds) {
   return parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}` : parts[0];
 }
 function estimate() {
+  const wait = Number($('rest').value);
+  $('waitConversion').textContent = $('rest').value.trim() && Number.isInteger(wait) && wait >= 0 && wait <= 86400
+    ? `${wait} ${wait === 1 ? 'second' : 'seconds'} = ${durationInWords(wait)}` : '';
   try {
     const p = plan();
-    $('estimate').textContent = `${p.jobs.length} runs · About ${durationInWords(p.total)} total · Finish around ${new Date(Date.now() + p.total * 1000).toLocaleTimeString()} (plus API delays).`;
+    $('estimate').textContent = `${p.jobs.length / p.rounds} ${p.jobs.length / p.rounds === 1 ? 'zone' : 'zones'} × ${p.rounds} ${p.rounds === 1 ? 'pass' : 'passes'} = ${p.jobs.length} ${p.jobs.length === 1 ? 'zone run' : 'zone runs'} · About ${durationInWords(p.total)} total · Finish around ${new Date(Date.now() + p.total * 1000).toLocaleTimeString()} (plus API delays).`;
   } catch (e) { $('estimate').textContent = e.message; }
+  locks();
 }
 function locks() {
   const locked = loading || Boolean(runner?.locked);
   for (const id of ['key', 'connect', 'demo', 'device', 'seconds', 'rest', 'rounds', 'passRest', 'firstSeconds', 'firstPassEnabled', 'extraRestEnabled', 'clearSettings']) $(id).disabled = locked || (id === 'device' && !api);
   for (const input of $('zones').querySelectorAll('input')) input.disabled = locked;
   $('clearSettings').disabled = locked || !api || !knownZones.length;
-  $('start').disabled = locked || !runner || !knownZones.length;
+  let invalid = '';
+  try { plan(); } catch (e) { invalid = e.message; }
+  $('start').disabled = locked || !runner || !knownZones.length || Boolean(invalid);
+  $('start').title = invalid || 'Start the selected zone sequence';
   optionalControls(locked);
   $('pause').disabled = !runner?.session || ['pausing', 'resuming', 'stopping'].includes(runner.view.state);
   $('pause').textContent = runner?.view.state === 'paused' ? 'Resume session' : 'Pause session';
+  $('pauseHelp').textContent = runner?.view.state === 'paused' ? 'Resume continues this session from where it paused, running the current zone for its remaining time.' : 'Pause temporarily closes the current zone and preserves progress. Use Resume to continue.';
+  $('pause').title = $('pauseHelp').textContent;
+  $('stopHelp').textContent = runner?.uncertainDevice ? 'Retry sending Stop to Rachio. The previous session will not resume.' : 'Stop ends this session. Starting again begins with the first selected zone on pass one.';
+  $('stop').title = $('stopHelp').textContent;
   $('stop').disabled = !runner || !runner.locked || runner.view.state === 'stopping';
   $('stop').textContent = runner?.uncertainDevice ? 'Retry Stop' : 'Stop session';
 }
@@ -121,6 +132,8 @@ function settingsChanged() {
   const values = Object.fromEntries(Object.keys(DEFAULT_SETTINGS).map(id => [id, $(id).value.trim() === '' ? NaN : Number($(id).value)]));
   values.firstPassEnabled = $('firstPassEnabled').checked;
   values.extraRestEnabled = $('extraRestEnabled').checked;
+  if (!values.firstPassEnabled && (!Number.isInteger(values.firstSeconds) || values.firstSeconds < 1 || values.firstSeconds > 10800)) values.firstSeconds = DEFAULT_SETTINGS.firstSeconds;
+  if (!values.extraRestEnabled && (!Number.isInteger(values.passRest) || values.passRest < 0 || values.passRest > 86400)) values.passRest = DEFAULT_SETTINGS.passRest;
   values.selected = [...$('zones').querySelectorAll('input:checked')].map(box => box.value);
   const saved = settings.save($('device').value, simulation, values);
   $('settingsStatus').textContent = saved ? 'Settings saved for this controller on this device.' : 'Settings were not saved. Check the values; browser storage may be unavailable.';

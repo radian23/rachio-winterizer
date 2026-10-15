@@ -48,3 +48,8 @@
 .option-toggle{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer}.option-toggle input{width:18px;height:18px;flex-shrink:0;accent-color:var(--ink)}
 .option-fields{margin:14px 0 0 28px}.option-fields input{max-width:190px}.main-settings{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:480px){.main-settings{grid-template-columns:1fr 1fr}}
+
+.schedule-reminder{font-size:13px;padding:12px 14px;border-left:3px solid var(--focus);background:var(--soft);border-radius:6px}
+.control-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}.control-row>button{flex:1;margin:0;width:auto}
+.action-help{position:relative;flex:0 0 auto}.action-help summary{list-style:none;display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line);border-radius:50%;cursor:pointer;font-weight:700;color:var(--ink);background:var(--soft)}
+.action-help summary::-webkit-details-marker{display:none}.action-help p{position:absolute;right:0;top:42px;z-index:2;width:min(270px,65vw);margin:0;padding:14px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 5px 20px #0003;font-size:13px}

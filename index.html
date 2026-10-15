@@ -36,6 +36,7 @@
           <label>Wait between runs · seconds<input id="rest" type="number" value="480" min="0" max="86400" step="1"></label>
           <label>Passes<input id="rounds" type="number" value="4" min="1" max="100" step="1"></label>
         </div>
+        <p id="waitConversion" class="hint">480 seconds = 8 minutes</p>
         <div class="hint">
           <p><strong>Run:</strong> Set how long each zone runs, in seconds.</p>
           <p><strong>Wait:</strong> Set the time between runs, in seconds. Allow enough time for your compressor to fully recharge and cool down before the next run.</p>
@@ -63,6 +64,7 @@
         <div class="settings-actions"><button id="clearSettings" class="quiet" type="button" disabled>Reset settings &amp; clear API key</button></div>
         <p id="settingsStatus" class="hint" role="status">Settings are saved separately for each controller on this device. Your API key is never saved.</p>
         <p id="estimate" class="estimate">Select zones to estimate the session.</p>
+        <p class="schedule-reminder"><strong>Before starting:</strong> Disable normal watering schedules in the Rachio app.</p>
         <button id="start" class="primary" disabled>Start session</button>
         <div class="start-disclaimer">
           <p class="hint">Use at your own risk. Provided without warranty. To the extent permitted by law, the author accepts no liability for equipment damage or other losses.</p>
@@ -85,8 +87,14 @@
         <progress id="progress" value="0" max="1" aria-label="Completed timed runs"></progress>
         <p id="timeRemaining" class="remaining">Total remaining —</p>
         <div class="metrics"><span id="completed">0 runs completed</span><span id="finish">Finish —</span></div>
-        <button id="pause" class="pause" type="button" disabled>Pause session</button>
-        <button id="stop" class="stop" disabled>Stop session</button>
+        <div class="control-row">
+          <button id="pause" class="pause" type="button" aria-describedby="pauseHelp" disabled>Pause session</button>
+          <details class="action-help"><summary aria-label="About Pause and Resume">?</summary><p id="pauseHelp">Pause temporarily closes the current zone and preserves progress. Use Resume to continue.</p></details>
+        </div>
+        <div class="control-row">
+          <button id="stop" class="stop" aria-describedby="stopHelp" disabled>Stop session</button>
+          <details class="action-help"><summary aria-label="About Stop">?</summary><p id="stopHelp">Stop ends this session. Starting again begins with the first selected zone on pass one.</p></details>
+        </div>
         <p class="hint"><strong>Supervise the compressor throughout the session.</strong> This app controls irrigation valves only—it cannot detect overheating or shut off the compressor. Keep this page open and your device awake.</p>
         <section class="activity" aria-labelledby="logTitle">
           <div class="log-heading"><h3 id="logTitle">Activity log</h3><button id="latest" class="quiet" type="button" hidden>Jump to latest</button></div>

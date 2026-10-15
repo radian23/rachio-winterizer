@@ -32,6 +32,26 @@ test('simulation connects, renders zones, runs selected settings, and stops thro
     assert.match(get('connection').textContent, /Simulation/);
     assert.equal(get('start').disabled, false);
     assert.match(get('badge').textContent, /READY/);
+    assert.equal(get('waitConversion').textContent, '480 seconds = 8 minutes');
+    const allZones = get('zones').querySelectorAll('input');
+    allZones.forEach(box => { box.checked = false; }); allZones[0].handlers.change();
+    assert.equal(get('start').disabled, true);
+    allZones.forEach(box => { box.checked = true; }); allZones[0].handlers.change();
+    assert.equal(get('start').disabled, false);
+    get('rest').value = '-1'; get('rest').handlers.input();
+    assert.equal(get('start').disabled, true);
+    get('rest').value = '480'; get('rest').handlers.input();
+    assert.equal(get('start').disabled, false);
+    get('firstPassEnabled').checked = true; get('firstPassEnabled').handlers.change();
+    get('firstSeconds').value = ''; get('firstSeconds').handlers.input();
+    assert.equal(get('start').disabled, true);
+    get('firstPassEnabled').checked = false; get('firstPassEnabled').handlers.change();
+    assert.equal(get('start').disabled, false);
+    assert.match(get('settingsStatus').textContent, /Settings saved/);
+    get('firstSeconds').value = '60';
+    assert.match(get('pauseHelp').textContent, /preserves progress/);
+    assert.match(get('stopHelp').textContent, /ends this session/);
+
     assert.equal(get('firstPassEnabled').checked, false);
     assert.equal(get('extraRestEnabled').checked, false);
     assert.equal(get('firstPassFields').hidden, true);
@@ -44,7 +64,7 @@ test('simulation connects, renders zones, runs selected settings, and stops thro
     get('seconds').value = '1'; get('rest').value = '0'; get('rounds').value = '1'; get('passRest').value = '0';
     const boxes = get('zones').querySelectorAll('input'); boxes.slice(1).forEach(box => { box.checked = false; });
     boxes[0].handlers.change();
-    assert.match(get('estimate').textContent, /1 runs/);
+    assert.match(get('estimate').textContent, /1 zone × 1 pass = 1 zone run/);
     const run = get('start').handlers.click();
     await Promise.resolve(); await Promise.resolve();
     assert.equal(get('start').disabled, true); assert.match(get('badge').textContent, /SIMULATION/);

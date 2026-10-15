@@ -75,6 +75,11 @@ Both optional settings default to off. Their enabled states and durations are sa
 per controller; saved settings from older versions without enabled flags load with
 these options off. First-pass durations are included in estimates and pause/resume.
 
+The page shows a minutes/seconds equivalent for the wait, explains zone count ×
+passes in the estimate, and enables Start only when zones and enabled timings are
+valid. Tap the question marks beside Pause/Stop for their behavior (desktop button
+tooltips are also provided).
+
 Disable normal irrigation schedules and avoid other controller commands during the
 session. Stop affects **all watering on the selected controller**. Only enabled zones
 are offered, in zone-number order.
