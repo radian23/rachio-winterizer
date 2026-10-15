@@ -4,6 +4,29 @@ A browser-based tool for cycling irrigation zones during a supervised compressed
 blowout. Set the zone duration, the recovery/cooldown interval, and the number of
 passes. Built by `radian23`. Independent of Rachio.
 
+## Intended use and contractor access
+
+This tool is intended primarily for **homeowners winterizing their own irrigation
+systems**, using their own Rachio account and API key. Its configurable recovery and
+cooldown intervals are useful when working with a smaller compressor.
+
+Rachio supports delegated contractor access in its own app, but its
+[third-party integration documentation](https://support.rachio.com/en_us/smart-home-integrations-rJOy_UyYP)
+states that shared-access devices are not supported for third-party integrations.
+A controller visible in a contractor's Rachio app therefore should not be assumed
+to be available through that contractor's API key in this tool.
+
+The newer [Pro Business Accounts documentation](https://support.rachio.com/en_us/rachio-pro-business-accounts-rJRC06pg)
+describes managing client properties in Rachio, but does not confirm public-API access
+to those shared properties. **Contractor/shared-account operation has not been
+verified and is not advertised as supported.**
+
+A homeowner can connect on their own device using their own key while working with
+a contractor. There is no need to hand the contractor the homeowner's API key.
+If a key returns multiple controllers, this tool supports selecting among them and
+saving separate settings; each session operates one controller at a time. It is not
+a contractor fleet-management or simultaneous multi-property control system.
+
 ## Hosted app
 
 Open **https://simpleplum.com/rachio-winterizer/** on your phone or computer.
