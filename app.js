@@ -127,7 +127,7 @@ $('clearSettings').addEventListener('click', () => {
   knownZones = [];
   $('zones').replaceChildren();
   const placeholder = document.createElement('option');
-  placeholder.textContent = 'Enter your API key to find your controller';
+  placeholder.textContent = 'Connect to view your controllers';
   placeholder.value = '';
   $('device').replaceChildren(placeholder);
   $('connection').textContent = 'Disconnected. API key cleared. Connect again to load your controller.';
