@@ -49,7 +49,7 @@ function locks() {
   $('stop').textContent = runner?.uncertainDevice ? 'Retry Stop' : 'Stop session';
 }
 function render(view) {
-  $('badge').textContent = `${simulation ? 'SIMULATION · ' : ''}${view.state.toUpperCase()}`;
+  $('badge').textContent = `${simulation ? 'SIMULATION · ' : ''}${view.state === 'disconnected' ? 'NOT CONNECTED' : view.state.toUpperCase()}`;
   $('status').textContent = view.message;
   $('countdown').textContent = view.phaseLeft == null ? '—' : pretty(view.phaseLeft);
   $('phase').textContent = view.state === 'cooling' ? 'Extra rest before the next pass' : view.state === 'resting' ? 'Until the next zone' : 'Time remaining in this phase';
@@ -135,13 +135,15 @@ $('clearSettings').addEventListener('click', () => {
     ? 'Saved settings cleared for this controller. Defaults restored and API key cleared.'
     : 'Defaults restored and API key cleared. Saved settings could not be removed from browser storage.';
   awake.setActive(false);
-  render({ state: 'ready', message: 'Connect your controller to start a session.', done: 0, log: [], remaining: null, phaseLeft: null });
+  render({ state: 'disconnected', message: 'Connect your controller to start a session.', done: 0, log: [], remaining: null, phaseLeft: null });
   error();
   estimate();
 });
 document.addEventListener?.('visibilitychange', () => awake.visibilityChanged());
 async function loadController() {
-  knownZones = []; $('zones').replaceChildren(); loading = true; locks();
+  knownZones = []; $('zones').replaceChildren(); loading = true;
+  runner.publish({ state: 'loading', message: 'Loading controller zones…', done: 0, total: null, phaseLeft: null, remaining: null, log: [] });
+  locks();
   try {
     const device = await api.device($('device').value);
     knownZones = (device.zones || []).filter(z => z.enabled !== false).map(z => ({ id: z.id, name: z.name || `Zone ${z.zoneNumber}`, number: z.zoneNumber })).sort((a, b) => a.number - b.number);
@@ -153,13 +155,18 @@ async function loadController() {
       label.append(box, text); $('zones').append(label);
     }
     restoreSettings();
-    if (!knownZones.length) error('No enabled zones found on this controller.');
-  } catch (e) { error(e.message); }
+    if (!knownZones.length) {
+      error('No enabled zones found on this controller.');
+      runner.publish({ state: 'no zones', message: 'No enabled zones found. Choose another controller or enable zones in Rachio.' });
+    } else runner.publish({ state: 'ready', message: 'Controller connected. Choose your zones and run settings, then start a session.' });
+  } catch (e) { error(e.message); runner.publish({ state: 'failed', message: 'Could not load controller zones. Reconnect or choose another controller.' }); }
   finally { loading = false; locks(); estimate(); }
 }
 async function connect(client, demo = false) {
   if (loading || runner?.locked) return;
-  error(); loading = true; locks();
+  error(); loading = true;
+  render({ state: 'connecting', message: demo ? 'Loading simulated controller…' : 'Connecting to Rachio…', done: 0, remaining: null, phaseLeft: null, log: [] });
+  locks();
   try {
     const devices = await client.controllers();
     if (!devices.length) throw Error('No Rachio controllers were found.');
@@ -168,9 +175,13 @@ async function connect(client, demo = false) {
       const option = document.createElement('option'); option.value = device.id; option.textContent = device.name; return option;
     }));
     $('connection').textContent = demo ? 'Simulation: no commands will be sent to Rachio.' : 'Connected. Your API key is sent directly to Rachio and is not saved.';
-    $('key').value = ''; render(runner.view);
+    $('key').value = '';
     await loadController();
-  } catch (e) { error(e.message); }
+  } catch (e) {
+    error(e.message);
+    if (runner && knownZones.length) render(runner.view);
+    else render({ state: 'disconnected', message: 'Connection failed. Check your API key and try again.', done: 0, remaining: null, phaseLeft: null, log: [] });
+  }
   finally { loading = false; locks(); }
 }
 $('connectForm').addEventListener('submit', event => {

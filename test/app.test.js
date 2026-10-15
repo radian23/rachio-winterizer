@@ -31,6 +31,7 @@ test('simulation connects, renders zones, runs selected settings, and stops thro
     assert.equal(get('zones').querySelectorAll('input').length, 8);
     assert.match(get('connection').textContent, /Simulation/);
     assert.equal(get('start').disabled, false);
+    assert.match(get('badge').textContent, /READY/);
     // A newly loaded controller starts from defaults, not the previous controller.
     get('seconds').value = '1'; get('rest').value = '0'; get('rounds').value = '1'; get('passRest').value = '0';
     const boxes = get('zones').querySelectorAll('input'); boxes.slice(1).forEach(box => { box.checked = false; });
@@ -68,6 +69,7 @@ test('simulation connects, renders zones, runs selected settings, and stops thro
     assert.equal(get('device').disabled, true);
     assert.equal(get('zones').children.length, 0);
     assert.match(get('connection').textContent, /Disconnected.*API key cleared/);
+    assert.equal(get('badge').textContent, 'NOT CONNECTED');
     await get('start').handlers.click();
     assert.equal(get('zones').children.length, 0);
     // Exercise controller switching through the actual interface with a fake API.
