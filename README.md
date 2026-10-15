@@ -56,16 +56,17 @@ GitHub Pages serves the interface; it does not execute the sequence on a server.
 2. Get your key in the Rachio mobile app: **Profile → API key → Copy**.
 3. Connect, choose a controller, and select the enabled zones to include.
 4. Set **Run** in seconds, **Wait** in seconds, and **Passes**.
-5. Optionally set **Extra rest between passes** (default 180 seconds; 0 disables it).
+5. Optionally set **Extra rest between passes** (default 0 seconds, disabled).
    This is added after the normal wait at each pass boundary, except after the final pass.
 6. Start and stay present. Use **Stop session** to cancel early.
 
-For eight zones, a 30-second run, a 360-second combined wait, and five passes, the
-timing estimate is **4 hours 14 minutes** with extra pass rest disabled.
-The default extra rest of 180 seconds adds 12 minutes across four pass boundaries,
-for **4 hours 26 minutes**, plus API delays. There is no wait after
-the final zone. Wait is your measured recharge time **plus** your chosen cooldown;
-this tool does not measure or guarantee compressor motor duty cycle.
+The defaults are a **30-second run**, **480-second wait (8 minutes)**, **4 passes**,
+and **0 seconds of extra rest between passes**. With eight zones, this estimates
+**4 hours 24 minutes**, plus API delays. There is no wait after the final zone.
+Wait is your measured recharge time plus your chosen cooldown; this tool does not
+measure or guarantee compressor motor duty cycle. These are starting values, not
+a recommendation for every compressor. Existing saved controller settings are
+preserved; use Reset to restore the current defaults (and clear your API key).
 
 Disable normal irrigation schedules and avoid other controller commands during the
 session. Stop affects **all watering on the selected controller**. Only enabled zones

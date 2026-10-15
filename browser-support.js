@@ -1,4 +1,4 @@
-export const DEFAULT_SETTINGS = Object.freeze({ seconds: 30, rest: 360, rounds: 5, passRest: 180 });
+export const DEFAULT_SETTINGS = Object.freeze({ seconds: 30, rest: 480, rounds: 4, passRest: 0 });
 const limits = { seconds: [1, 10800], rest: [0, 86400], rounds: [1, 100], passRest: [0, 86400] };
 
 export class ControllerSettings {

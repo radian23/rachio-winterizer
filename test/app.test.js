@@ -62,9 +62,9 @@ test('simulation connects, renders zones, runs selected settings, and stops thro
     get('clearSettings').handlers.click();
     assert.equal(get('key').value, '');
     assert.equal(get('seconds').value, '30');
-    assert.equal(get('rest').value, '360');
-    assert.equal(get('rounds').value, '5');
-    assert.equal(get('passRest').value, '180');
+    assert.equal(get('rest').value, '480');
+    assert.equal(get('rounds').value, '4');
+    assert.equal(get('passRest').value, '0');
     assert.equal(get('start').disabled, true);
     assert.equal(get('device').disabled, true);
     assert.equal(get('zones').children.length, 0);
