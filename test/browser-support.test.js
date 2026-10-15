@@ -72,3 +72,10 @@ test('late wake lock is released after stop and does not leak into a new session
   assert(first.released); assert.equal(wake.token, second); assert.equal(calls, 2);
   wake.setActive(false); await flush(); assert(second.released);
 });
+test('optional settings start disabled and their flags are saved independently per controller', () => {
+  const memory = storage(), settings = new ControllerSettings(() => memory);
+  assert.equal(settings.read('new').firstPassEnabled,false); assert.equal(settings.read('new').extraRestEnabled,false);
+  assert(settings.save('a',false,{...DEFAULT_SETTINGS,firstPassEnabled:true,extraRestEnabled:true,firstSeconds:75,passRest:180,selected:[]}));
+  assert.equal(settings.read('a').firstSeconds,75); assert.equal(settings.read('a').firstPassEnabled,true);
+  assert.equal(settings.read('a').extraRestEnabled,true); assert.equal(settings.read('b').firstPassEnabled,false);
+});

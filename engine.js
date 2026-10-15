@@ -1,11 +1,12 @@
 /** Application logic written for radian23's irrigation winterizer. */
-export function makePlan({ zones, seconds, rest, rounds, passRest = 0 }) {
+export function makePlan({ zones, seconds, rest, rounds, passRest = 0, firstSeconds = null }) {
+  firstSeconds ??= seconds;
   for (const [label, value, min, max] of [
-    ['Zone duration', seconds, 1, 10800], ['Recovery interval', rest, 0, 86400], ['Passes', rounds, 1, 100], ['Rest between passes', passRest, 0, 86400],
+    ['Zone duration', seconds, 1, 10800], ['First-pass duration', firstSeconds, 1, 10800], ['Recovery interval', rest, 0, 86400], ['Passes', rounds, 1, 100], ['Rest between passes', passRest, 0, 86400],
   ]) if (!Number.isInteger(value) || value < min || value > max) throw Error(`${label}: enter a whole number from ${min} to ${max}.`);
   if (!Array.isArray(zones) || !zones.length || zones.some(z => !z.id) || new Set(zones.map(z => z.id)).size !== zones.length) throw Error('Select one or more distinct zones.');
-  const jobs = Array.from({ length: rounds }, (_, i) => zones.map(zone => ({ zone: { ...zone }, pass: i + 1 }))).flat();
-  return { jobs, seconds, rest, rounds, passRest, total: jobs.length * seconds + (jobs.length - 1) * rest + (rounds - 1) * passRest };
+  const jobs = Array.from({ length: rounds }, (_, i) => zones.map(zone => ({ zone: { ...zone }, pass: i + 1, seconds: i === 0 ? firstSeconds : seconds }))).flat();
+  return { jobs, seconds, rest, rounds, passRest, firstSeconds, total: jobs.reduce((sum, job) => sum + job.seconds, 0) + (jobs.length - 1) * rest + (rounds - 1) * passRest };
 }
 
 export class Rachio {
@@ -78,7 +79,7 @@ export class Sequencer {
     if (this.locked) throw Error('Finish stopping the previous session before starting another.');
     if (!device) throw Error('Choose a controller.');
     // Rebuild rather than trust caller-supplied job counts or timings.
-    plan = makePlan({ zones: plan.jobs.filter(j => j.pass === 1).map(j => j.zone), seconds: plan.seconds, rest: plan.rest, rounds: plan.rounds, passRest: plan.passRest });
+    plan = makePlan({ zones: plan.jobs.filter(j => j.pass === 1).map(j => j.zone), seconds: plan.seconds, rest: plan.rest, rounds: plan.rounds, passRest: plan.passRest, firstSeconds: plan.firstSeconds });
     const session = { cancel: new AbortController(), device, immediateStop: null, pauseWanted: false, phaseAbort: null, resumeGate: null };
     this.session = session;
     this.publish({ state: 'starting', message: 'Starting session…', done: 0, counts: {}, total: plan.jobs.length, remaining: plan.total, log: [] });
@@ -138,11 +139,11 @@ export class Sequencer {
       for (const job of plan.jobs) {
         if (session.cancel.signal.aborted) break;
         this.publish({ state: 'starting', job, phaseLeft: null, message: `Requesting zone ${job.zone.number} · pass ${job.pass}/${plan.rounds}…` });
-        this.note(`Requesting ${job.zone.name}, pass ${job.pass}, for ${plan.seconds}s.`);
+        this.note(`Requesting ${job.zone.name}, pass ${job.pass}, for ${job.seconds}s.`);
         // No automatic retry: an unanswered Start may still have been delivered.
-        await this.api.start(job.zone.id, plan.seconds);
+        await this.api.start(job.zone.id, job.seconds);
         if (session.cancel.signal.aborted) break;
-        await phase('blowing', plan.seconds, job);
+        await phase('blowing', job.seconds, job);
         if (session.cancel.signal.aborted) break;
         done++; counts[job.zone.id] = (counts[job.zone.id] || 0) + 1;
         this.publish({ done, counts: { ...counts } });

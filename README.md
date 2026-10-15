@@ -56,9 +56,13 @@ GitHub Pages serves the interface; it does not execute the sequence on a server.
 2. Get your key in the Rachio mobile app: **Profile → API key → Copy**.
 3. Connect, choose a controller, and select the enabled zones to include.
 4. Set **Run** in seconds, **Wait** in seconds, and **Passes**.
-5. Optionally set **Extra rest between passes** (default 0 seconds, disabled).
-   This is added after the normal wait at each pass boundary, except after the final pass.
-6. Start and stay present. Use **Stop session** to cancel early.
+5. Under **Optional settings**, enable **Use a different duration for the first pass**
+   if desired, then set its duration in seconds. This applies to every selected zone
+   on pass one; later passes use the regular run duration. It is off by default.
+6. Optionally enable **Add extra rest between passes** and set its duration.
+   This is added after the normal wait at each pass boundary, except after the final
+   pass. It is off by default; enabling it initially suggests 180 seconds.
+7. Start and stay present. Use **Stop session** to cancel early.
 
 The defaults are a **30-second run**, **480-second wait (8 minutes)**, **4 passes**,
 and **0 seconds of extra rest between passes**. With eight zones, this estimates
@@ -67,6 +71,9 @@ Wait is your measured recharge time plus your chosen cooldown; this tool does no
 measure or guarantee compressor motor duty cycle. These are starting values, not
 a recommendation for every compressor. Existing saved controller settings are
 preserved; use Reset to restore the current defaults (and clear your API key).
+Both optional settings default to off. Their enabled states and durations are saved
+per controller; saved settings from older versions without enabled flags load with
+these options off. First-pass durations are included in estimates and pause/resume.
 
 Disable normal irrigation schedules and avoid other controller commands during the
 session. Stop affects **all watering on the selected controller**. Only enabled zones

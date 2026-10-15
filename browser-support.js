@@ -1,5 +1,5 @@
-export const DEFAULT_SETTINGS = Object.freeze({ seconds: 30, rest: 480, rounds: 4, passRest: 0 });
-const limits = { seconds: [1, 10800], rest: [0, 86400], rounds: [1, 100], passRest: [0, 86400] };
+export const DEFAULT_SETTINGS = Object.freeze({ seconds: 30, rest: 480, rounds: 4, passRest: 0, firstSeconds: 60 });
+const limits = { seconds: [1, 10800], rest: [0, 86400], rounds: [1, 100], passRest: [0, 86400], firstSeconds: [1, 10800] };
 
 export class ControllerSettings {
   constructor(storage = () => globalThis.localStorage) { this.storage = storage; }
@@ -7,15 +7,17 @@ export class ControllerSettings {
   read(id, demo = false) {
     try {
       const raw = this.storage()?.getItem(this.key(id, demo));
-      if (!raw) return { ...DEFAULT_SETTINGS, selected: null, saved: false };
+      if (!raw) return { ...DEFAULT_SETTINGS, firstPassEnabled: false, extraRestEnabled: false, selected: null, saved: false };
       const data = JSON.parse(raw);
       if (!data || typeof data !== 'object') throw Error('Invalid settings');
-      const result = { ...DEFAULT_SETTINGS, selected: null, saved: true };
+      const result = { ...DEFAULT_SETTINGS, firstPassEnabled: false, extraRestEnabled: false, selected: null, saved: true };
       for (const [name, [min, max]] of Object.entries(limits))
         if (Number.isInteger(data[name]) && data[name] >= min && data[name] <= max) result[name] = data[name];
+      result.firstPassEnabled = data.firstPassEnabled === true;
+      result.extraRestEnabled = data.extraRestEnabled === true;
       if (Array.isArray(data.selected) && data.selected.every(id => typeof id === 'string')) result.selected = data.selected;
       return result;
-    } catch { return { ...DEFAULT_SETTINGS, selected: null, saved: false }; }
+    } catch { return { ...DEFAULT_SETTINGS, firstPassEnabled: false, extraRestEnabled: false, selected: null, saved: false }; }
   }
   save(id, demo, values) {
     // Explicit allowlist: never serialize the API client, key, or controller object.
@@ -24,6 +26,8 @@ export class ControllerSettings {
       if (!Number.isInteger(values[name]) || values[name] < min || values[name] > max) return false;
       data[name] = values[name];
     }
+    data.firstPassEnabled = values.firstPassEnabled === true;
+    data.extraRestEnabled = values.extraRestEnabled === true;
     data.selected = [...values.selected];
     try { const storage = this.storage(); if (!storage) return false; storage.setItem(this.key(id, demo), JSON.stringify(data)); return true; }
     catch { return false; }

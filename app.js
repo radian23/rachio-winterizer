@@ -12,12 +12,17 @@ const pretty = value => {
 };
 function error(message = '') { $('error').textContent = message; $('error').hidden = !message; }
 function plan() {
-  const values = ['seconds', 'rest', 'rounds', 'passRest'].map(id => {
-    if (!$(id).value.trim()) throw Error('Fill in all timing fields.');
-    return Number($(id).value);
-  });
+  const number = id => { if (!$(id).value.trim()) throw Error('Fill in all enabled timing fields.'); return Number($(id).value); };
   const chosen = new Set([...$('zones').querySelectorAll('input:checked')].map(input => input.value));
-  return makePlan({ zones: knownZones.filter(zone => chosen.has(zone.id)), seconds: values[0], rest: values[1], rounds: values[2], passRest: values[3] });
+  return makePlan({ zones: knownZones.filter(zone => chosen.has(zone.id)), seconds: number('seconds'), rest: number('rest'), rounds: number('rounds'),
+    passRest: $('extraRestEnabled').checked ? number('passRest') : 0,
+    firstSeconds: $('firstPassEnabled').checked ? number('firstSeconds') : null });
+}
+function optionalControls(locked = loading || Boolean(runner?.locked)) {
+  $('firstPassFields').hidden = !$('firstPassEnabled').checked;
+  $('extraRestFields').hidden = !$('extraRestEnabled').checked;
+  $('firstSeconds').disabled = locked || !$('firstPassEnabled').checked;
+  $('passRest').disabled = locked || !$('extraRestEnabled').checked;
 }
 function durationInWords(totalSeconds) {
   const total = Math.max(0, Math.ceil(totalSeconds));
@@ -39,10 +44,11 @@ function estimate() {
 }
 function locks() {
   const locked = loading || Boolean(runner?.locked);
-  for (const id of ['key', 'connect', 'demo', 'device', 'seconds', 'rest', 'rounds', 'passRest', 'clearSettings']) $(id).disabled = locked || (id === 'device' && !api);
+  for (const id of ['key', 'connect', 'demo', 'device', 'seconds', 'rest', 'rounds', 'passRest', 'firstSeconds', 'firstPassEnabled', 'extraRestEnabled', 'clearSettings']) $(id).disabled = locked || (id === 'device' && !api);
   for (const input of $('zones').querySelectorAll('input')) input.disabled = locked;
   $('clearSettings').disabled = locked || !api || !knownZones.length;
   $('start').disabled = locked || !runner || !knownZones.length;
+  optionalControls(locked);
   $('pause').disabled = !runner?.session || ['pausing', 'resuming', 'stopping'].includes(runner.view.state);
   $('pause').textContent = runner?.view.state === 'paused' ? 'Resume session' : 'Pause session';
   $('stop').disabled = !runner || !runner.locked || runner.view.state === 'stopping';
@@ -103,6 +109,9 @@ $('latest').addEventListener('click', () => {
 function restoreSettings() {
   const saved = settings.read($('device').value, simulation);
   for (const name of Object.keys(DEFAULT_SETTINGS)) $(name).value = String(saved[name]);
+  $('firstPassEnabled').checked = saved.firstPassEnabled;
+  $('extraRestEnabled').checked = saved.extraRestEnabled;
+  optionalControls();
   for (const box of $('zones').querySelectorAll('input')) box.checked = saved.selected === null || saved.selected.includes(box.value);
   $('settingsStatus').textContent = saved.saved ? 'Loaded saved settings for this controller.' : 'Changes are saved on this device separately for each controller.';
 }
@@ -110,6 +119,8 @@ function settingsChanged() {
   estimate();
   if (!api || loading || runner?.locked) return;
   const values = Object.fromEntries(Object.keys(DEFAULT_SETTINGS).map(id => [id, $(id).value.trim() === '' ? NaN : Number($(id).value)]));
+  values.firstPassEnabled = $('firstPassEnabled').checked;
+  values.extraRestEnabled = $('extraRestEnabled').checked;
   values.selected = [...$('zones').querySelectorAll('input:checked')].map(box => box.value);
   const saved = settings.save($('device').value, simulation, values);
   $('settingsStatus').textContent = saved ? 'Settings saved for this controller on this device.' : 'Settings were not saved. Check the values; browser storage may be unavailable.';
@@ -118,6 +129,8 @@ $('clearSettings').addEventListener('click', () => {
   if (loading || runner?.locked || !api) return;
   const cleared = settings.clear($('device').value, simulation);
   for (const [id, value] of Object.entries(DEFAULT_SETTINGS)) $(id).value = String(value);
+  $('firstPassEnabled').checked = false;
+  $('extraRestEnabled').checked = false;
   // Clear the live client as well as the form so a reconnect is required.
   if (api instanceof Rachio) api.key = '';
   $('key').value = '';
@@ -189,7 +202,11 @@ $('connectForm').addEventListener('submit', event => {
   if (key) void connect(new Rachio(key));
 });
 $('device').addEventListener('change', () => { if (!runner?.locked) { error(); void loadController(); } });
-for (const id of ['seconds', 'rest', 'rounds', 'passRest']) $(id).addEventListener('input', settingsChanged);
+for (const id of ['seconds', 'rest', 'rounds', 'passRest', 'firstSeconds']) $(id).addEventListener('input', settingsChanged);
+for (const id of ['firstPassEnabled', 'extraRestEnabled']) $(id).addEventListener('change', () => {
+  if (id === 'extraRestEnabled' && $(id).checked && Number($('passRest').value) === 0) $('passRest').value = '180';
+  optionalControls(); settingsChanged();
+});
 $('start').addEventListener('click', async () => {
   error();
   try { if (runner) await runner.run($('device').value, plan()); }

@@ -31,17 +31,33 @@
         <p class="hint">Runs in the order shown, repeating the full list on every pass.</p>
         <div id="zones" class="zones"><p class="hint">Your zones will appear here.</p></div>
         <div class="section-title"><span class="number">03</span><h2>Run settings</h2></div>
-        <div class="fields">
-          <label>Run · seconds<input id="seconds" type="number" value="30" min="1" max="10800" step="1"></label>
-          <label>Wait · seconds<input id="rest" type="number" value="480" min="0" max="86400" step="1"></label>
-          <label>Extra rest between passes · seconds<input id="passRest" type="number" value="0" min="0" max="86400" step="1"></label>
+        <div class="fields main-settings">
+          <label>Run duration · seconds<input id="seconds" type="number" value="30" min="1" max="10800" step="1"></label>
+          <label>Wait between runs · seconds<input id="rest" type="number" value="480" min="0" max="86400" step="1"></label>
           <label>Passes<input id="rounds" type="number" value="4" min="1" max="100" step="1"></label>
         </div>
         <div class="hint">
           <p><strong>Run:</strong> Set how long each zone runs, in seconds.</p>
           <p><strong>Wait:</strong> Set the time between runs, in seconds. Allow enough time for your compressor to fully recharge and cool down before the next run.</p>
-          <p><strong>Extra rest between passes:</strong> Add a longer break after each complete pass, in addition to the normal wait. For example, 180–300 seconds adds 3–5 minutes. Set 0 to disable. There is no extra break after the final pass. This is not a substitute for adequate cooling between individual zone runs.</p>
-          <p><strong>Passes:</strong> Set how many times to run through all selected zones. For example, 5 passes means each zone is blown out 5 times.</p>
+          <p><strong>Passes:</strong> Number of times to run through all selected zones. For example, 4 passes runs each zone 4 times.</p>
+        </div>
+        <div class="optional-settings">
+          <h3>Optional settings</h3>
+          <p class="hint">Leave these off to use the regular run duration on every pass, with no extra rest between passes.</p>
+          <div class="optional-row">
+            <label class="option-toggle"><input id="firstPassEnabled" type="checkbox" aria-controls="firstPassFields"> Use a different duration for the first pass</label>
+            <div id="firstPassFields" class="option-fields" hidden>
+              <label>First-pass duration · seconds<input id="firstSeconds" type="number" value="60" min="1" max="10800" step="1" disabled></label>
+              <p class="hint">Applies to each zone on the first pass. Later passes use the regular run duration.</p>
+            </div>
+          </div>
+          <div class="optional-row">
+            <label class="option-toggle"><input id="extraRestEnabled" type="checkbox" aria-controls="extraRestFields"> Add extra rest between passes</label>
+            <div id="extraRestFields" class="option-fields" hidden>
+              <label>Extra rest · seconds<input id="passRest" type="number" value="0" min="0" max="86400" step="1" disabled></label>
+              <p class="hint">Adds a break after each complete pass, in addition to the normal wait. No extra break follows the final pass.</p>
+            </div>
+          </div>
         </div>
         <p class="hint">Allow enough wait time for recharge and cooling. Follow your compressor manufacturer's duty-cycle limits.</p>
         <div class="settings-actions"><button id="clearSettings" class="quiet" type="button" disabled>Reset settings &amp; clear API key</button></div>

@@ -32,6 +32,14 @@ test('simulation connects, renders zones, runs selected settings, and stops thro
     assert.match(get('connection').textContent, /Simulation/);
     assert.equal(get('start').disabled, false);
     assert.match(get('badge').textContent, /READY/);
+    assert.equal(get('firstPassEnabled').checked, false);
+    assert.equal(get('extraRestEnabled').checked, false);
+    assert.equal(get('firstPassFields').hidden, true);
+    get('firstPassEnabled').checked = true; get('firstPassEnabled').handlers.change();
+    assert.equal(get('firstPassFields').hidden, false);
+    assert.equal(get('firstSeconds').disabled, false);
+    get('firstPassEnabled').checked = false; get('firstPassEnabled').handlers.change();
+    assert.equal(get('firstSeconds').disabled, true);
     // A newly loaded controller starts from defaults, not the previous controller.
     get('seconds').value = '1'; get('rest').value = '0'; get('rounds').value = '1'; get('passRest').value = '0';
     const boxes = get('zones').querySelectorAll('input'); boxes.slice(1).forEach(box => { box.checked = false; });

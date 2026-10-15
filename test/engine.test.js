@@ -200,3 +200,17 @@ test('all 16 controller zones are supported without truncation', async () => {
   assert.equal(r.runner.view.done, 16); assert.equal(r.calls.filter(c => c[0] === 'start').length, 16);
   assert.equal(r.runner.view.state, 'finished');
 });
+test('first-pass duration applies to every first-pass zone and estimates correctly', async () => {
+  const p = plan({ firstSeconds: 60, rest: 0 });
+  assert.equal(p.total, 180); assert.deepEqual(p.jobs.map(j => j.seconds), [60,60,30,30]);
+  const r = rig(), task = r.runner.run('device', p); await flush();
+  for (const seconds of [60,60,30,30]) { assert.equal(r.waits[0].ms, seconds*1000); await r.next(); }
+  await task; assert.deepEqual(r.calls.filter(c => c[0] === 'start').map(c => c[2]),[60,60,30,30]);
+  assert.equal(r.runner.view.done,4);
+});
+test('pausing a longer first pass resumes only its remaining time', async () => {
+  const r = rig(), task = r.runner.run('device', plan({ firstSeconds: 60 })); await flush();
+  r.elapse(10000); r.runner.pause(); await flush(); r.runner.resume(); await flush();
+  assert.deepEqual(r.calls.filter(c => c[0] === 'start').map(c => c[2]),[60,50]);
+  await r.runner.stop(); await task;
+});
