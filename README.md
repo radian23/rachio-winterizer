@@ -160,8 +160,14 @@ valves closed. Stop passing air through dry components.
 The real controller's API key is held in JavaScript memory in the current tab. It is
 not stored in localStorage, cookies, repository files, URLs, or logs. The connected
 key is sent only in authorization headers to `https://api.rach.io`. Closing the tab
-clears the application's memory. There are no third-party scripts, analytics, fonts,
-or dependencies. Simulation uses no network requests. Never commit your API key.
+clears the application's memory. There are no third-party scripts, fonts, or dependencies.
+The Simple Plum hosted copy makes one cookieless page-view request to its own Matomo
+installation. It includes the fixed page address and referring website origin when
+available; the server records IP addresses for visitor/location reports. The code
+never reads or transmits API keys, form values, controller details, or session logs.
+Browser Do Not Track and Global Privacy Control are respected. Other hosts and
+localhost do not send analytics to Simple Plum. The simulated controller makes no
+Rachio requests. Never commit your API key.
 
 ## Development and validation
 
@@ -184,6 +190,7 @@ Files:
 - `engine.js`: Rachio API client, plan generation, cancellation and session state
 - `app.js`: browser controls, simulation and display
 - `browser-support.js`: controller settings and screen wake lock lifecycle
+- `analytics.js`: hosted-copy-only first-party page-view counting
 - `index.html` / `style.css`: original interface and styling
 - `test/`: simulation and DOM smoke tests
 

@@ -191,3 +191,12 @@ test('Stop during pending Resume is followed by final Stop after Start settles',
   await r.runner.stop(); release(); await task;
   assert.deepEqual(order, ['start', 'stop', 'start', 'stop', 'stop']); assert.equal(r.runner.view.state, 'stopped');
 });
+test('all 16 controller zones are supported without truncation', async () => {
+  const full = Array.from({ length: 16 }, (_, i) => ({ id: `zone-${i+1}`, number: i+1, name: `Zone ${i+1}` }));
+  const repeated = plan({ zones: full, rounds: 5 }); assert.equal(repeated.jobs.length, 80);
+  assert.equal(repeated.jobs[79].zone.number, 16); assert.equal(repeated.jobs[79].pass, 5);
+  const r = rig(), task = r.runner.run('device', plan({ zones: full, rounds: 1, seconds: 1, rest: 0 }));
+  await flush(); for (let i=0; i<16; i++) await r.next(); await task;
+  assert.equal(r.runner.view.done, 16); assert.equal(r.calls.filter(c => c[0] === 'start').length, 16);
+  assert.equal(r.runner.view.state, 'finished');
+});
